@@ -29,7 +29,7 @@ echo Using compiler: %CSC_EXE%
 echo.
 
 "%CSC_EXE%" ^
-  /nologo /target:winexe /platform:anycpu ^
+  /nologo /target:winexe /platform:anycpu /unsafe ^
   /win32icon:"%SCRIPT_DIR%appicon.ico" ^
   /out:"%SCRIPT_DIR%SwitchPowerTray.exe" ^
   /r:System.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll ^
