@@ -6,6 +6,34 @@ Version 2.0.0 expands the original switcher into a flexible Windows power-profil
 
 ---
 
+## 📸 Screenshots
+
+The screenshots below show the tray application in its different built-in power profiles, the compact main tray menu, the expanded Advanced Settings menu, and Temporary Always On mode.
+
+### Power profiles
+
+| Balanced | Energy Saving | Desktop Docking Station |
+|---|---|---|
+| ![Balanced profile](screenshots/01-balanced.png) | ![Energy Saving profile](screenshots/02-energy-saving.png) | ![Desktop Docking Station profile](screenshots/03-desktop-docking-station.png) |
+
+| Laptop On The Go | Always On | Night |
+|---|---|---|
+| ![Laptop On The Go profile](screenshots/04-laptop-on-the-go.png) | ![Always On profile](screenshots/05-always-on.png) | ![Night profile](screenshots/06-night.png) |
+
+### Tray menus
+
+![Main tray menu](screenshots/07-main-menu.png)
+
+![Advanced Settings menu](screenshots/08-advanced-settings.png)
+
+### Temporary Always On
+
+![Temporary Always On active](screenshots/09-temporary-always-on.png)
+
+These screenshots also illustrate the profile-specific tray icons and the visual distinction used while Temporary Always On is active.
+
+---
+
 ## ⭐ Features
 
 ### ⚡ Six built-in power profiles
