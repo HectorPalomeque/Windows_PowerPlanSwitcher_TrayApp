@@ -8,7 +8,7 @@ Version 2.0.0 expands the original switcher into a flexible Windows power-profil
 
 ## 📸 Screenshots
 
-The screenshots below show the tray application in its different built-in power profiles, the compact main tray menu, the expanded Advanced Settings menu, and Temporary Always On mode.
+The screenshots below show the tray application in its different built-in power profiles, the compact main tray menu, the expanded Advanced Settings menu, Temporary Always On configuration and activation, the Windows Power Options integration, and the first-run elevated startup approval dialog.
 
 ### Power profiles
 
@@ -20,17 +20,29 @@ The screenshots below show the tray application in its different built-in power 
 |---|---|---|
 | ![Laptop On The Go profile](screenshots/04-laptop-on-the-go.png) | ![Always On profile](screenshots/05-always-on.png) | ![Night profile](screenshots/06-night.png) |
 
-### Tray menus
+### Tray menus and configuration
 
 ![Main tray menu](screenshots/07-main-menu.png)
 
 ![Advanced Settings menu](screenshots/08-advanced-settings.png)
 
+![Toggle cycle configuration](screenshots/11-toggle-cycle.png)
+
+![Power plan assignment menu](screenshots/12-power-plan-assignment.png)
+
 ### Temporary Always On
 
 ![Temporary Always On active](screenshots/09-temporary-always-on.png)
 
-These screenshots also illustrate the profile-specific tray icons and the visual distinction used while Temporary Always On is active.
+![Temporary Always On configuration dialog](screenshots/10-temporary-always-on-dialog.png)
+
+### Windows integration
+
+![Windows Power Options](screenshots/13-windows-power-options.png)
+
+![One-time elevated startup approval](screenshots/14-elevated-startup-approval.png)
+
+These screenshots illustrate the profile-specific tray icons, configurable slot cycling and assignment, Windows Power Options access, the one-time elevated startup setup, and the visual distinction used while Temporary Always On is active.
 
 ---
 
@@ -320,6 +332,21 @@ Windows_PowerPlanSwitcher_TrayApp/
 ├── BalancedPower_Light.ico
 ├── SaveEnergy_Dark.ico
 ├── SaveEnergy_Light.ico
+├── screenshots/
+│   ├── 01-balanced.png
+│   ├── 02-energy-saving.png
+│   ├── 03-desktop-docking-station.png
+│   ├── 04-laptop-on-the-go.png
+│   ├── 05-always-on.png
+│   ├── 06-night.png
+│   ├── 07-main-menu.png
+│   ├── 08-advanced-settings.png
+│   ├── 09-temporary-always-on.png
+│   ├── 10-temporary-always-on-dialog.png
+│   ├── 11-toggle-cycle.png
+│   ├── 12-power-plan-assignment.png
+│   ├── 13-windows-power-options.png
+│   └── 14-elevated-startup-approval.png
 ├── README.md
 └── LICENSE
 ```
