@@ -355,9 +355,41 @@ Windows_PowerPlanSwitcher_TrayApp/
 
 ## 🪟 Windows compatibility
 
-The application is designed for Windows 10 and Windows 11 systems that provide the Windows Power Profile APIs used by the application.
+The application is designed for **Windows 10 and Windows 11** systems that provide the Windows Power Profile APIs used by the application. It is **not tied to a specific computer, manufacturer, or power-plan configuration**.
 
-The exact power-plan options available on a machine can depend on hardware, firmware, Windows configuration, and the power schemes present on the system.
+Most core functionality is designed to work across compatible Windows PCs. On first use, the application can create its managed built-in power plans when they are missing instead of requiring the exact plans from the development machine to already exist.
+
+### Feature compatibility
+
+| Feature | Windows 10/11 PCs | Notes |
+|---|---|---|
+| Power-plan switching | ✅ | Uses the Windows Power Profile APIs. |
+| Built-in A–F profiles | ✅ | Missing managed plans can be created automatically. |
+| Custom slots G–Z | ✅ | User assignments and icons are stored in the app configuration. |
+| Toggle cycle | ✅ | Independent of the machine's existing plan names. |
+| Temporary Always On | ✅ | Uses the application's managed Always On power configuration and Windows process/window state. |
+| Startup / elevated Task Scheduler | ✅ | Requires the normal one-time administrator approval. |
+| Light/Dark tray icons | ✅ | Uses the application's embedded icon resources. |
+| Buttons & lid settings | ✅* | Available controls depend on the device hardware; desktops do not have a lid control. |
+| Display & sleep settings | ✅ | Exact available behavior can depend on Windows and hardware. |
+| Night Light integration | ⚠️ | Depends on the Night Light implementation/state available in the installed Windows version. |
+| Energy Saving integration | ⚠️ | Depends on the Windows version and the power-management features available on the device. |
+
+`✅*` means the feature is generally supported, but the actual hardware determines which controls are meaningful or exposed.
+
+### Important compatibility notes
+
+The exact power-plan settings available on a machine can depend on **hardware, firmware, Windows configuration, and the power schemes present on that system**. A desktop PC, laptop, and other device types may therefore expose different options even though the application itself is the same.
+
+The **Night** and **Energy Saving** integrations are more Windows-version dependent than the core power-plan switching functionality. These features rely on Windows system features/state that may differ between Windows releases and device configurations.
+
+The application uses the standard Windows Power Profile APIs for its core power-plan functionality and does not require the user's computer to have the developer's exact existing power-plan GUIDs. Managed plans use deterministic identifiers so the application can recognize or create its own plans on another compatible installation.
+
+### Recommended support statement
+
+For distribution, the project can reasonably be described as:
+
+> **Designed for Windows 10 and Windows 11. Most power-plan management features work across compatible Windows systems, while certain integrations such as Night Light and Energy Saver depend on the Windows version and available system features.**
 
 ---
 
