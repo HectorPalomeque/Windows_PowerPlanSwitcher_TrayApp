@@ -44,7 +44,7 @@ if not exist "%SCRIPT_DIR%SwitchPowerTray.manifest" (
   /nologo /target:winexe /platform:anycpu /unsafe ^
   /win32icon:"%SCRIPT_DIR%appicon.ico" ^
   /win32manifest:"%SCRIPT_DIR%SwitchPowerTray.manifest" ^
-  /out:"%SCRIPT_DIR%SwitchPowerTray-Test.exe" ^
+  /out:"%SCRIPT_DIR%SwitchPowerTray.exe" ^
   /r:System.dll /r:System.Windows.Forms.dll /r:System.Drawing.dll ^
   /r:System.Security.dll /r:System.Xml.dll ^
   /resource:"%SCRIPT_DIR%Desktop_Dark.ico","Icon.Desktop.Dark.ico" ^
@@ -61,7 +61,7 @@ if not exist "%SCRIPT_DIR%SwitchPowerTray.manifest" (
   /resource:"%SCRIPT_DIR%BalancedPower_Light.ico","Icon.Balanced.Light.ico" ^
   /resource:"%SCRIPT_DIR%SaveEnergy_Dark.ico","Icon.EnergySave.Dark.ico" ^
   /resource:"%SCRIPT_DIR%SaveEnergy_Light.ico","Icon.EnergySave.Light.ico" ^
-  "%SCRIPT_DIR%SwitchPowerTray_pca_fixed_v12.cs"
+  "%SCRIPT_DIR%SwitchPowerTray.cs"
 
 if errorlevel 1 (
     echo.
@@ -72,7 +72,7 @@ if errorlevel 1 (
 
 echo.
 echo Build SUCCEEDED:
-echo %SCRIPT_DIR%SwitchPowerTray-Test.exe
+echo %SCRIPT_DIR%SwitchPowerTray.exe
 echo.
 pause
 endlocal
