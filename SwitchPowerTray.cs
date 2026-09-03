@@ -96,7 +96,28 @@ static class Program
                 bool isLogonTask =
                     xml.IndexOf("<LogonTrigger", StringComparison.OrdinalIgnoreCase) >= 0;
 
-                return pointsToThisExe && launchesElevatedTray && isLogonTask;
+                // The elevated tray task must be explicitly allowed to run on
+                // battery power and must not stop when AC power is removed.
+                // Older test registrations can inherit Task Scheduler battery
+                // conditions that stop the tray exactly when the laptop is
+                // unplugged. Require the corrected values before trusting the
+                // persisted task.
+                XmlNode disallowBatteryNode =
+                    doc.SelectSingleNode("//*[local-name()='DisallowStartIfOnBatteries']");
+                XmlNode stopOnBatteryNode =
+                    doc.SelectSingleNode("//*[local-name()='StopIfGoingOnBatteries']");
+
+                bool disallowStartOnBatteries =
+                    disallowBatteryNode != null &&
+                    string.Equals((disallowBatteryNode.InnerText ?? "").Trim(), "true", StringComparison.OrdinalIgnoreCase);
+
+                bool stopIfGoingOnBatteries =
+                    stopOnBatteryNode != null &&
+                    string.Equals((stopOnBatteryNode.InnerText ?? "").Trim(), "true", StringComparison.OrdinalIgnoreCase);
+
+                bool batterySafe = !disallowStartOnBatteries && !stopIfGoingOnBatteries;
+
+                return pointsToThisExe && launchesElevatedTray && isLogonTask && batterySafe;
             }
         }
         catch
@@ -164,53 +185,95 @@ static class Program
     private static bool InstallElevatedTask()
     {
         string exePath = Application.ExecutablePath;
-        string taskRun = "\"" + exePath + "\" /elevated-tray";
+        string escapedExe = System.Security.SecurityElement.Escape(exePath);
+        string workingDirectory = Application.StartupPath;
+        string escapedWorkingDirectory = System.Security.SecurityElement.Escape(workingDirectory);
+
         try
         {
-            // /IT = interactive-only. Omitting /RU makes schtasks use the
-            // current user, avoiding password storage. /RL HIGHEST gives the
-            // task the same user's highest available token.
-            ProcessStartInfo psi = new ProcessStartInfo
+            // Register the persistent elevated tray task from explicit XML so
+            // the task has no AC/battery restrictions. This is important on
+            // laptops: the tray must continue running when AC is unplugged and
+            // it must also remain launchable while already on battery power.
+            string taskXml =
+                "<?xml version=\"1.0\" encoding=\"UTF-16\"?>" +
+                "<Task version=\"1.4\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">" +
+                "<RegistrationInfo><Description>SwitchPowerTray elevated tray task.</Description></RegistrationInfo>" +
+                "<Triggers><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers>" +
+                "<Principals><Principal id=\"Author\">" +
+                    "<UserId>" + System.Security.SecurityElement.Escape(WindowsIdentity.GetCurrent().Name) + "</UserId>" +
+                    "<LogonType>InteractiveToken</LogonType>" +
+                    "<RunLevel>HighestAvailable</RunLevel>" +
+                "</Principal></Principals>" +
+                "<Settings>" +
+                    "<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>" +
+                    "<DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>" +
+                    "<StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>" +
+                    "<AllowHardTerminate>true</AllowHardTerminate>" +
+                    "<StartWhenAvailable>true</StartWhenAvailable>" +
+                    "<RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>" +
+                    "<IdleSettings><StopOnIdleEnd>false</StopOnIdleEnd><RestartOnIdle>false</RestartOnIdle></IdleSettings>" +
+                    "<AllowStartOnDemand>true</AllowStartOnDemand>" +
+                    "<Enabled>true</Enabled>" +
+                    "<Hidden>true</Hidden>" +
+                    "<ExecutionTimeLimit>PT0S</ExecutionTimeLimit>" +
+                    "<Priority>7</Priority>" +
+                "</Settings>" +
+                "<Actions Context=\"Author\"><Exec>" +
+                    "<Command>" + escapedExe + "</Command>" +
+                    "<Arguments>/elevated-tray</Arguments>" +
+                    "<WorkingDirectory>" + escapedWorkingDirectory + "</WorkingDirectory>" +
+                "</Exec></Actions>" +
+                "</Task>";
+
+            string xmlPath = Path.Combine(Path.GetTempPath(), "SwitchPowerTray_ElevatedTask.xml");
+            File.WriteAllText(xmlPath, taskXml, new UnicodeEncoding(false, true));
+
+            try
             {
-                FileName = Path.Combine(Environment.SystemDirectory, "schtasks.exe"),
-                Arguments =
-                    "/Create" +
-                    " /TN \"" + ElevatedTaskName + "\"" +
-                    " /TR \"" + taskRun.Replace("\"", "\\\"") + "\"" +
-                    " /SC ONLOGON" +
-                    " /IT" +
-                    " /RL HIGHEST" +
-                    " /F",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-
-            using (Process p = Process.Start(psi))
-            {
-                if (p == null) return false;
-
-                string stdout = p.StandardOutput.ReadToEnd();
-                string stderr = p.StandardError.ReadToEnd();
-                p.WaitForExit(5000);
-
-                if (p.ExitCode != 0)
+                ProcessStartInfo psi = new ProcessStartInfo
                 {
-                    try
-                    {
-                        File.AppendAllText(
-                            Path.Combine(Path.GetTempPath(), "SwitchPowerTray.log"),
-                            DateTime.Now.ToString("s") +
-                            "  ElevationTaskInstall failed: " +
-                            p.ExitCode + " " + stdout + " " + stderr +
-                            Environment.NewLine);
-                    }
-                    catch { }
+                    FileName = Path.Combine(Environment.SystemDirectory, "schtasks.exe"),
+                    Arguments =
+                        "/Create" +
+                        " /TN \"" + ElevatedTaskName + "\"" +
+                        " /XML \"" + xmlPath.Replace("\"", "\\\"") + "\"" +
+                        " /F",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
 
-                    return false;
+                using (Process p = Process.Start(psi))
+                {
+                    if (p == null) return false;
+
+                    string stdout = p.StandardOutput.ReadToEnd();
+                    string stderr = p.StandardError.ReadToEnd();
+                    p.WaitForExit(5000);
+
+                    if (p.ExitCode != 0)
+                    {
+                        try
+                        {
+                            File.AppendAllText(
+                                Path.Combine(Path.GetTempPath(), "SwitchPowerTray.log"),
+                                DateTime.Now.ToString("s") +
+                                "  ElevationTaskInstall failed: " +
+                                p.ExitCode + " " + stdout + " " + stderr +
+                                Environment.NewLine);
+                        }
+                        catch { }
+
+                        return false;
+                    }
                 }
+            }
+            finally
+            {
+                try { if (File.Exists(xmlPath)) File.Delete(xmlPath); } catch { }
             }
 
             return IsElevatedTaskInstalled();
