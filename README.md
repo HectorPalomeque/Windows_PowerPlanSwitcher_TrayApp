@@ -42,7 +42,31 @@ The screenshots below show the tray application in its different built-in power 
 
 ![One-time elevated startup approval](screenshots/14-elevated-startup-approval.png)
 
-These screenshots illustrate the profile-specific tray icons, configurable slot cycling and assignment, Windows Power Options access, the one-time elevated startup setup, and the visual distinction used while Temporary Always On is active.
+### Power-plan customization
+
+![Power button action submenu](screenshots/15-power-button-actions.png)
+
+![Closing lid action submenu](screenshots/16-closing-lid-actions.png)
+
+![Display and sleep customization menu](screenshots/17-display-sleep-menu.png)
+
+![Timeout presets](screenshots/18-timeout-presets.png)
+
+![Custom timeout dialog](screenshots/19-custom-timeout.png)
+
+### Language and icon contrast
+
+![Spanish interface and language selector](screenshots/20-language-spanish.png)
+
+![Icon contrast menu](screenshots/21-icon-contrast.png)
+
+### Tray appearance
+
+![Desktop Docking Station tray tooltip](screenshots/22-desktop-docking-station-tooltip.png)
+
+![Balanced tray tooltip](screenshots/23-balanced-tooltip.png)
+
+These screenshots illustrate the profile-specific tray icons, configurable slot cycling and assignment, power-plan button/lid and display/sleep customization, timeout presets, multilingual support, icon contrast options, Windows Power Options access, the one-time elevated startup setup, and the visual distinction used while Temporary Always On is active.
 
 ---
 
@@ -346,7 +370,16 @@ Windows_PowerPlanSwitcher_TrayApp/
 │   ├── 11-toggle-cycle.png
 │   ├── 12-power-plan-assignment.png
 │   ├── 13-windows-power-options.png
-│   └── 14-elevated-startup-approval.png
+│   ├── 14-elevated-startup-approval.png
+│   ├── 15-power-button-actions.png
+│   ├── 16-closing-lid-actions.png
+│   ├── 17-display-sleep-menu.png
+│   ├── 18-timeout-presets.png
+│   ├── 19-custom-timeout.png
+│   ├── 20-language-spanish.png
+│   ├── 21-icon-contrast.png
+│   ├── 22-desktop-docking-station-tooltip.png
+│   └── 23-balanced-tooltip.png
 ├── README.md
 └── LICENSE
 ```
