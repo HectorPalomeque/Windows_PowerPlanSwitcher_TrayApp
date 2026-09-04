@@ -686,7 +686,6 @@ public sealed class TrayContext : ApplicationContext
     private Icon exeIcon, lastIcon;
     private readonly Dictionary<string, Icon> icons = new Dictionary<string, Icon>(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Icon> fileIcons = new Dictionary<string, Icon>(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, Icon> generatedIcons = new Dictionary<string, Icon>(StringComparer.OrdinalIgnoreCase);
 
     private enum TemporaryAlwaysOnTrigger { Window, Process }
     private enum TemporaryEndAction { ReturnToSlot, Lock, Sleep, Hibernate, ShutDown, Restart, Nothing }
@@ -2164,7 +2163,7 @@ public sealed class TrayContext : ApplicationContext
             }
             else
             {
-                sub.DropDownItems.Add(new ToolStripMenuItem(L("Set ONE icon (Light or Dark)…", "Configurar UN icono (Claro u Oscuro)…"), null, (s, e) => { CloseContextMenu(); PromptIconsForSlot(slotKey); SaveConfig(); UpdateTrayIcon(); }));
+                sub.DropDownItems.Add(new ToolStripMenuItem(L("Set icon(s) (Light / Dark / Both)…", "Configurar icono(s) (Claro / Oscuro / Ambos)…"), null, (s, e) => { CloseContextMenu(); PromptIconsForSlot(slotKey); SaveConfig(); UpdateTrayIcon(); }));
             }
 
             sub.DropDownItems.Add(new ToolStripMenuItem(L("Clear this slot", "Limpiar esta ranura"), null, (s, e) => { if (!slots.ContainsKey(slotKey)) slots[slotKey] = new SlotConfig { Key = slotKey }; slots[slotKey].Guid = ""; SaveConfig(); UpdateTrayIcon(); }));
@@ -2174,24 +2173,147 @@ public sealed class TrayContext : ApplicationContext
         return sub;
     }
 
+    private enum IconSetupMode { Cancel, LightOnly, DarkOnly, Both }
+
+    private IconSetupMode PromptIconSetupMode()
+    {
+        using (var form = new Form())
+        {
+            form.Text = L("Configure custom icons", "Configurar iconos personalizados");
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.MinimizeBox = false;
+            form.MaximizeBox = false;
+            form.ShowInTaskbar = false;
+            form.ClientSize = new Size(390, 235);
+
+            var label = new Label
+            {
+                Left = 14,
+                Top = 14,
+                Width = 360,
+                Height = 48,
+                Text = L("Choose which icon variants you want to configure.\r\nOnly the variants you select will be stored; no automatic color inversion is performed.",
+                          "Elige qué variantes de icono quieres configurar.\r\nSolo se guardarán las variantes seleccionadas; no se invierten colores automáticamente.")
+            };
+
+            var light = new RadioButton
+            {
+                Left = 18,
+                Top = 76,
+                Width = 340,
+                Height = 28,
+                Text = L("Light icon only", "Solo icono claro")
+            };
+
+            var dark = new RadioButton
+            {
+                Left = 18,
+                Top = 108,
+                Width = 340,
+                Height = 28,
+                Text = L("Dark icon only", "Solo icono oscuro")
+            };
+
+            var both = new RadioButton
+            {
+                Left = 18,
+                Top = 140,
+                Width = 340,
+                Height = 28,
+                Text = L("Both Light and Dark icons", "Ambos iconos: Claro y Oscuro"),
+                Checked = true
+            };
+
+            var ok = new Button
+            {
+                Text = L("OK", "Aceptar"),
+                DialogResult = DialogResult.OK,
+                Left = 214,
+                Top = 190,
+                Width = 78,
+                Height = 28
+            };
+
+            var cancel = new Button
+            {
+                Text = L("Cancel", "Cancelar"),
+                DialogResult = DialogResult.Cancel,
+                Left = 300,
+                Top = 190,
+                Width = 78,
+                Height = 28
+            };
+
+            form.Controls.Add(label);
+            form.Controls.Add(light);
+            form.Controls.Add(dark);
+            form.Controls.Add(both);
+            form.Controls.Add(ok);
+            form.Controls.Add(cancel);
+            form.AcceptButton = ok;
+            form.CancelButton = cancel;
+
+            if (form.ShowDialog() != DialogResult.OK) return IconSetupMode.Cancel;
+            if (light.Checked) return IconSetupMode.LightOnly;
+            if (dark.Checked) return IconSetupMode.DarkOnly;
+            return IconSetupMode.Both;
+        }
+    }
+
     private void PromptIconsForSlot(char slotKey)
     {
         if (IsStandardSlot(slotKey)) return;
         EnsureDefaultSlots();
         if (!slots.ContainsKey(slotKey)) slots[slotKey] = new SlotConfig { Key = slotKey };
-        SlotConfig s = slots[slotKey];
-        string picked = PickIcoFile(L("Pick ONE icon (.ico)", "Elige UN icono (.ico)"));
-        if (string.IsNullOrEmpty(picked)) return;
 
-        DialogResult dr = MessageBox.Show(L("Is this the LIGHT icon?\r\n\r\nYes = Light\r\nNo = Dark\r\nCancel = Don't change", "¿Este es el icono CLARO?\r\n\r\nSí = Claro\r\nNo = Oscuro\r\nCancelar = No cambiar"), L("Icon type", "Tipo de icono"), MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-        if (dr == DialogResult.Cancel) return;
-        if (dr == DialogResult.Yes) s.LightIconPath = picked; else s.DarkIconPath = picked;
-        slots[slotKey] = s;
+        IconSetupMode mode = PromptIconSetupMode();
+        if (mode == IconSetupMode.Cancel) return;
+
+        SlotConfig current = slots[slotKey];
+        string lightPath = current.LightIconPath;
+        string darkPath = current.DarkIconPath;
+
+        if (mode == IconSetupMode.LightOnly)
+        {
+            string picked = PickIconFile(L("Pick the LIGHT icon (.ico or .png)", "Elige el icono CLARO (.ico o .png)"));
+            if (string.IsNullOrEmpty(picked)) return;
+            lightPath = picked;
+            darkPath = "";
+        }
+        else if (mode == IconSetupMode.DarkOnly)
+        {
+            string picked = PickIconFile(L("Pick the DARK icon (.ico or .png)", "Elige el icono OSCURO (.ico o .png)"));
+            if (string.IsNullOrEmpty(picked)) return;
+            darkPath = picked;
+            lightPath = "";
+        }
+        else
+        {
+            string pickedLight = PickIconFile(L("Pick the LIGHT icon (.ico or .png)", "Elige el icono CLARO (.ico o .png)"));
+            if (string.IsNullOrEmpty(pickedLight)) return;
+
+            string pickedDark = PickIconFile(L("Pick the DARK icon (.ico or .png)", "Elige el icono OSCURO (.ico o .png)"));
+            if (string.IsNullOrEmpty(pickedDark)) return;
+
+            lightPath = pickedLight;
+            darkPath = pickedDark;
+        }
+
+        current.LightIconPath = lightPath;
+        current.DarkIconPath = darkPath;
+        slots[slotKey] = current;
     }
 
-    private string PickIcoFile(string title)
+    private string PickIconFile(string title)
     {
-        using (var dlg = new OpenFileDialog { Title = title, Filter = "Icon files (*.ico)|*.ico", CheckFileExists = true, Multiselect = false })
+        using (var dlg = new OpenFileDialog
+        {
+            Title = title,
+            Filter = "Icon/image files (*.ico;*.png)|*.ico;*.png|Icon files (*.ico)|*.ico|PNG images (*.png)|*.png",
+            CheckFileExists = true,
+            Multiselect = false
+        })
             return (dlg.ShowDialog() == DialogResult.OK) ? dlg.FileName : "";
     }
 
@@ -3005,7 +3127,7 @@ public sealed class TrayContext : ApplicationContext
             tray.Text = string.IsNullOrEmpty(activeName) ? L("Switch Power Plan", "Cambiar plan de energía") : TrimForTray(activeName);
         }
 
-        if (icon == null) icon = lastIcon != null ? lastIcon : (exeIcon != null ? exeIcon : SystemIcons.Application);
+        if (icon == null) icon = exeIcon != null ? exeIcon : SystemIcons.Application;
         tray.Icon = icon; lastIcon = icon;
     }
 
@@ -3022,50 +3144,6 @@ public sealed class TrayContext : ApplicationContext
             case TemporaryEndAction.Nothing: return L("Nothing", "Nada");
             default: return "";
         }
-    }
-
-    private Icon CreateInvertedIcon(Icon src, int size)
-    {
-        if (src == null) return null;
-        using (Bitmap bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb))
-        {
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.DrawIcon(src, new Rectangle(0, 0, size, size));
-            }
-            BitmapData data = bmp.LockBits(new Rectangle(0, 0, size, size), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-            unsafe
-            {
-                byte* ptr = (byte*)data.Scan0;
-                for (int i = 0; i < data.Height * data.Stride; i += 4)
-                {
-                    ptr[i] = (byte)(255 - ptr[i]);         // Blue
-                    ptr[i + 1] = (byte)(255 - ptr[i + 1]); // Green
-                    ptr[i + 2] = (byte)(255 - ptr[i + 2]); // Red
-                }
-            }
-            bmp.UnlockBits(data);
-            IntPtr hIcon = bmp.GetHicon();
-            Icon result = (Icon)Icon.FromHandle(hIcon).Clone();
-            DestroyIcon(hIcon);
-            return result;
-        }
-    }
-
-    private Icon LoadIconOrGeneratedCounterpart(string desiredPath, string otherPath, int size)
-    {
-        Icon direct = LoadIconFromFileCached(desiredPath); if (direct != null) return direct;
-        if (!string.IsNullOrEmpty(otherPath))
-        {
-            Icon baseIcon = LoadIconFromFileCached(otherPath); if (baseIcon == null) return null;
-            string key = "invert|" + otherPath + "|" + size;
-            Icon cached; if (generatedIcons.TryGetValue(key, out cached) && cached != null) return cached;
-            Icon inverted = CreateInvertedIcon(baseIcon, size);
-            if (inverted != null) generatedIcons[key] = inverted;
-            return inverted;
-        }
-        return null;
     }
 
     private Icon IconForGuid(string guid)
@@ -3089,15 +3167,74 @@ public sealed class TrayContext : ApplicationContext
 
         SlotConfig sc = slots[slotKey.Value];
         string desiredPath = variant == "Light" ? sc.LightIconPath : sc.DarkIconPath;
-        string otherPath = variant == "Light" ? sc.DarkIconPath : sc.LightIconPath;
-        return LoadIconOrGeneratedCounterpart(desiredPath, otherPath, 16);
+        // Deliberately do not generate an automatic counterpart. If the user
+        // configured only one variant, the other variant remains empty and the
+        // tray falls back to the application's default icon.
+        return LoadIconFromFileCached(desiredPath, 16);
     }
 
-    private Icon LoadIconFromFileCached(string path)
+    private Icon LoadIconFromFileCached(string path, int size = 16)
     {
         if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
-        Icon cached; if (fileIcons.TryGetValue(path, out cached) && cached != null) return cached;
-        try { using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) { var ic = new Icon(fs); fileIcons[path] = ic; return ic; } } catch { return null; }
+        string cacheKey = path + "|" + size;
+        Icon cached; if (fileIcons.TryGetValue(cacheKey, out cached) && cached != null) return cached;
+
+        try
+        {
+            string ext = Path.GetExtension(path);
+            if (string.Equals(ext, ".png", StringComparison.OrdinalIgnoreCase))
+            {
+                using (Bitmap source = new Bitmap(path))
+                using (Bitmap canvas = new Bitmap(size, size, PixelFormat.Format32bppArgb))
+                using (Graphics g = Graphics.FromImage(canvas))
+                {
+                    g.Clear(Color.Transparent);
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    g.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+
+                    float maxW = Math.Max(1, size - 2);
+                    float maxH = Math.Max(1, size - 2);
+                    float scale = Math.Min(maxW / source.Width, maxH / source.Height);
+                    int drawW = Math.Max(1, (int)Math.Round(source.Width * scale));
+                    int drawH = Math.Max(1, (int)Math.Round(source.Height * scale));
+                    int left = (size - drawW) / 2;
+                    int top = (size - drawH) / 2;
+
+                    g.DrawImage(source,
+                        new Rectangle(left, top, drawW, drawH),
+                        0, 0, source.Width, source.Height,
+                        GraphicsUnit.Pixel);
+
+                    IntPtr hIcon = canvas.GetHicon();
+                    try
+                    {
+                        Icon result = (Icon)Icon.FromHandle(hIcon).Clone();
+                        fileIcons[cacheKey] = result;
+                        return result;
+                    }
+                    finally
+                    {
+                        DestroyIcon(hIcon);
+                    }
+                }
+            }
+
+            if (string.Equals(ext, ".ico", StringComparison.OrdinalIgnoreCase))
+            {
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var loaded = new Icon(fs, new Size(size, size)))
+                {
+                    Icon result = (Icon)loaded.Clone();
+                    fileIcons[cacheKey] = result;
+                    return result;
+                }
+            }
+        }
+        catch { }
+
+        return null;
     }
 
     private static string TrimForTray(string s) { s = (s != null) ? s.Replace("\r", "").Replace("\n", " · ") : ""; return s.Length > 63 ? s.Substring(0, 63) : s; }
@@ -3168,8 +3305,7 @@ public sealed class TrayContext : ApplicationContext
         try { if (endWatcher != null) endWatcher.Dispose(); if (themeWatcher != null) themeWatcher.Dispose(); if (tray != null) { tray.Visible = false; tray.Dispose(); } if (exeIcon != null) exeIcon.Dispose(); } catch { }
         foreach (var kv in icons) if (kv.Value != null) kv.Value.Dispose(); 
         foreach (var kv in fileIcons) if (kv.Value != null) kv.Value.Dispose(); 
-        foreach (var kv in generatedIcons) if (kv.Value != null) kv.Value.Dispose();
-        icons.Clear(); fileIcons.Clear(); generatedIcons.Clear();
+        icons.Clear(); fileIcons.Clear();
         base.ExitThreadCore();
     }
 
