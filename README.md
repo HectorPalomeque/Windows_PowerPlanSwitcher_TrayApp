@@ -59,11 +59,15 @@ The cycle selection is independent from slot assignment, so a slot can remain as
 
 Additional slots can be created from **Add Slot (next letter)…**, starting at G and continuing through Z.
 
+![Add custom slot](screenshots/25-add-custom-slot.png)
+
 A custom slot can use either an `.ico` or `.png` file and can be configured in one of three explicit modes:
 
 - **Light icon only**
 - **Dark icon only**
 - **Both Light and Dark icons**
+
+![Choose custom icon type](screenshots/26-custom-icon-type.png)
 
 The application **does not automatically invert custom icons**. The user explicitly chooses which contrast variants to provide.
 
@@ -71,15 +75,15 @@ When only one variant is configured, the other variant remains intentionally emp
 
 When both variants are configured, the selected Light and Dark files are used directly for their corresponding modes.
 
+To select a custom image, the application opens the normal Windows file picker and accepts both `.ico` and `.png` files.
+
+![Custom icon file picker](screenshots/28-custom-icon-file-picker.png)
+
 PNG files are scaled proportionally and centered on the tray-icon canvas so the source artwork is not stretched. Square transparent PNG artwork is recommended; a **32×32 px transparent square** is a good source size for tray artwork.
 
 ICO files are loaded at tray size so multi-resolution `.ico` files can be used without relying on automatic color inversion.
 
 ![Custom plan tray icon](screenshots/24-custom-plan-tray-icon.png)
-
-![Add custom slot](screenshots/25-add-custom-slot.png)
-
-![Choose custom icon type](screenshots/26-custom-icon-type.png)
 
 ![Custom slot with assigned icon](screenshots/27-custom-slot-assigned-icon.png)
 
@@ -277,7 +281,7 @@ Feature behavior can still vary with hardware and Windows version. In particular
 User configuration is stored at:
 
 ```text
-%APPDATA%\SwitchPowerTray\config.txt
+%APPDATA%\\SwitchPowerTray\\config.txt
 ```
 
 Configuration includes:
@@ -292,7 +296,7 @@ Configuration includes:
 Diagnostic logging is stored at:
 
 ```text
-%TEMP%\SwitchPowerTray.log
+%TEMP%\\SwitchPowerTray.log
 ```
 
 The diagnostic log is rotated when it exceeds approximately 1 MB.
@@ -474,7 +478,8 @@ Windows_PowerPlanSwitcher_TrayApp/
 │   ├── 24-custom-plan-tray-icon.png
 │   ├── 25-add-custom-slot.png
 │   ├── 26-custom-icon-type.png
-│   └── 27-custom-slot-assigned-icon.png
+│   ├── 27-custom-slot-assigned-icon.png
+│   └── 28-custom-icon-file-picker.png
 ├── README.md
 └── LICENSE
 ```
