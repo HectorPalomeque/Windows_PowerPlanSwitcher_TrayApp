@@ -1,14 +1,14 @@
 # Power Plan Switcher Tray App
 
-A lightweight Windows system-tray utility for quickly switching between Windows power plans and configuring practical power-management behavior from a compact tray interface.
+A lightweight Windows system-tray utility for quickly switching between Windows power plans and controlling practical power-management behavior from a compact tray interface.
 
-Version 2.0.0 expands the original switcher into a flexible Windows power-profile control tool with six built-in profiles, configurable cycling, Temporary Always On automation, Night Light and Energy Saver integration, persistent elevated startup, and a reorganized Advanced Settings menu.
+Version 2.0.0 turns the original switcher into a configurable power-profile tool with six built-in profiles, user-defined slots, configurable left-click cycling, Temporary Always On automation, Night Light and Energy Saver integration, per-plan power-control customization, bilingual UI support, light/dark icon handling, and persistent elevated startup through Windows Task Scheduler.
 
 ---
 
 ## 📸 Screenshots
 
-The screenshots below show the tray application in its different built-in power profiles, the compact main tray menu, the expanded Advanced Settings menu, Temporary Always On configuration and activation, the Windows Power Options integration, and the first-run elevated startup approval dialog.
+The screenshots below show the built-in profiles, tray menus, customization tools, Temporary Always On, Windows Power Options integration, multilingual support, icon contrast handling, and custom-slot icons.
 
 ### Power profiles
 
@@ -60,13 +60,23 @@ The screenshots below show the tray application in its different built-in power 
 
 ![Icon contrast menu](screenshots/21-icon-contrast.png)
 
+### Custom icons
+
+![Custom plan tray icon](screenshots/24-custom-plan-tray-icon.png)
+
+![Add custom slot](screenshots/25-add-custom-slot.png)
+
+![Choose custom icon type](screenshots/26-custom-icon-type.png)
+
+![Custom slot with assigned icon](screenshots/27-custom-slot-assigned-icon.png)
+
 ### Tray appearance
 
-![Desktop Docking Station tray tooltip](screenshots/22-desktop-docking-station-tray.png)
+![Desktop Docking Station tray](screenshots/22-desktop-docking-station-tray.png)
 
-![Balanced tray tooltip](screenshots/23-balanced-tray.png)
+![Balanced tray](screenshots/23-balanced-tray.png)
 
-These screenshots illustrate the profile-specific tray icons, configurable slot cycling and assignment, power-plan button/lid and display/sleep customization, timeout presets, multilingual support, icon contrast options, Windows Power Options access, the one-time elevated startup setup, and the visual distinction used while Temporary Always On is active.
+These screenshots illustrate the six built-in profiles, profile-specific tray icons, configurable slot cycling and assignment, Temporary Always On, per-plan button/lid and display/sleep customization, multilingual support, manual icon-contrast selection, custom slot icons, Windows Power Options access, and elevated startup setup.
 
 ---
 
@@ -85,19 +95,37 @@ The application provides six predefined slots:
 | **E** | Balanced | **Balanced** |
 | **F** | Energy Saving | **Energy Saving** |
 
-If any managed plan is missing, the application can create and configure it automatically without modifying an existing plan with the same purpose.
+When a managed built-in plan is missing, the application can create its own managed plan rather than requiring the development machine's existing plan configuration.
 
-Each built-in slot has dedicated light/dark tray icons.
+Existing power plans with the requested built-in names are not reconfigured simply because they already exist.
 
 ### 🔄 Configurable toggle cycle
 
-Left-clicking the tray icon cycles through the selected slots only.
+Left-clicking the tray icon cycles through the assigned slots that are enabled in the toggle cycle.
 
-For example:
+Slots are processed in A–Z order, allowing a compact cycle such as:
 
 `A → D → F → A → D → F...`
 
-The toggle-cycle configuration lets you include or exclude slots without removing their power-plan assignments.
+The cycle selection is independent from slot assignment, so a slot can remain assigned while being excluded from left-click cycling.
+
+### 🧩 Custom slots and icons
+
+Additional slots can be created from **Add Slot (next letter)…**, starting at G and continuing through Z.
+
+A custom slot can be configured with either an `.ico` or `.png` image and one of three explicit icon configurations:
+
+- **Light icon only**
+- **Dark icon only**
+- **Both Light and Dark icons**
+
+The application does **not** automatically invert custom icons between Light and Dark modes.
+
+When only one variant is configured, the other variant is intentionally left empty and the application falls back to its normal application icon in that contrast mode. When both variants are configured, each selected file is used directly for its corresponding mode.
+
+For PNG files, transparent images are scaled proportionally and centered on the tray icon canvas rather than being stretched to fit.
+
+For ICO files, the application requests the icon at tray size so multi-resolution ICO files can be used without relying on automatic color inversion.
 
 ### 🟢 Temporary Always On
 
@@ -118,18 +146,13 @@ When the trigger ends, the application can:
 - Restart
 - Do nothing and leave the device on Always On
 
-While Temporary Always On is active, the tray uses:
-
-- `Bolt_active_Dark.ico`
-- `Bolt_active_Light.ico`
-
-This provides a clear visual indication that the temporary Always On state is active.
+While Temporary Always On is active, the tray uses dedicated active Bolt icons to provide a clear visual indication of the temporary state.
 
 ### 🌙 Night Light integration
 
-The Night profile can automatically enable Windows Night Light when entering Night and turn it back off when leaving Night when the application enabled it.
+The Night profile can enable Windows Night Light when entering Night and can turn it back off when leaving Night when the application was the component that enabled it.
 
-The app performs the operation without opening the Windows Quick Settings flyout.
+The app performs this integration without opening the Windows Quick Settings flyout.
 
 ### 🔋 Energy Saving integration
 
@@ -139,57 +162,27 @@ The Energy Saving profile combines:
 - **Best Power Efficiency** Windows power mode
 - Windows **Energy Saver** activation
 
-Energy Saver operations are handled independently so slower policy changes do not block normal tray interaction or Night Light transitions.
+The application keeps these slower system-level policy operations out of the normal tray interaction path and reconciles the latest requested state independently.
 
-### 🛡️ One-time administrator setup
+### 🛡️ Persistent elevated startup
 
-On first launch, the application can request a one-time administrator approval and configure a persistent elevated startup task through Windows Task Scheduler.
+On first use, the application can request one administrator approval and register a persistent **`SwitchPowerTray Elevated`** task through Windows Task Scheduler.
 
-After setup, the application can launch through the configured elevated task instead of requiring the user to manually choose **Run as administrator** on every launch.
+The task launches the current executable with:
 
-### 🖥️ Windows compatibility and DPI support
+```text
+/elevated-tray
+```
 
-The application includes an embedded Windows application manifest with Windows compatibility declarations and DPI awareness for better integration with modern Windows versions and high-DPI displays.
+The task is registered for logon with the highest available run level and is explicitly configured so that it is allowed to start on battery and does not stop merely because AC power is removed.
 
-### 🎛️ Reorganized tray menu
+The application also validates that the saved task points to the current executable before trusting an existing registration.
 
-The main tray menu is intentionally compact and focuses on the most common actions:
+### 🎛️ Power-plan customization
 
-- **Set Temporary Always On**
-- **Run at Startup**
-- **Advanced Settings**
-- **Exit (Close Program)**
-
-Additional controls are grouped under **Advanced Settings**, including power-plan switching, cycle configuration, slot assignment, icon contrast, language, button/lid customization, display/sleep customization, and Windows Power Options.
-
-### 🌐 Language support
-
-The interface supports:
-
-- **English**
-- **Español**
-
-The selected language is saved between launches. When no preference has been saved, the application uses the installed Windows UI language to choose between English and Spanish.
-
-### 🎨 Icon and theme handling
-
-The tray icon system supports:
-
-- Dedicated light/dark icons for all six built-in slots
-- Dedicated active icons for Temporary Always On
-- Automatic icon selection based on the Windows theme
-- Manual Light/Dark icon selection
-- Custom icons for additional slots
-
-Additional slots can use a custom `.ico` file. When only one variant is available, the app can generate an inverted counterpart for the alternate contrast mode.
-
-### 🧩 Power-plan customization
-
-The application exposes selected per-plan settings through the Windows Power Management API.
+Power-plan settings can be customized independently for **AC** and **battery**.
 
 #### Buttons and lid
-
-For each power plan, the following can be configured independently for **AC** and **battery**:
 
 - Power button
 - Sleep button
@@ -204,33 +197,42 @@ Available actions:
 
 #### Display and sleep
 
-For each power plan, the following can be configured independently for **AC** and **battery**:
-
 - Display off timeout
 - Console-lock display off timeout
 - Sleep after
 - Hibernate after
 - Unattended sleep timeout
 
-Preset timeout values range from **Never** and 1 minute through 2 hours, with a **Custom…** option for entering a value in minutes.
+Timeout presets include **Never**, minute-based values from 1 minute upward, and **Custom…** for entering a value in minutes.
 
-### 🚀 Run at Startup
+### 🌐 Language support
 
-The built-in **Run at Startup** option stores a per-user startup entry under:
+The interface supports:
 
-```text
-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
-```
+- **English**
+- **Español**
 
-The value name is:
+The selected language is persisted. When no saved preference exists, the application can use the installed Windows UI language to choose between English and Spanish.
 
-```text
-SwitchPowerTray
-```
+### 🎨 Icon contrast and theme handling
 
-### ⚙️ Open Windows Power Options
+Built-in profiles have dedicated light/dark tray icon resources.
 
-The Advanced Settings menu provides **Open Power Options…**, which opens the classic Windows Power Options control panel.
+The **Icon contrast** menu supports:
+
+- **Auto (match system, high contrast)**
+- **Use Light icons**
+- **Use Dark icons**
+
+A theme change is detected while Auto mode is active so the tray icon can update without restarting the application.
+
+### 🪟 Windows compatibility and DPI support
+
+The application is designed for compatible **Windows 10 and Windows 11** systems using the Windows Power Profile APIs. It is not tied to a specific computer, manufacturer, or pre-existing power-plan GUID set.
+
+The application includes a Windows manifest with compatibility and DPI declarations for modern Windows environments.
+
+Feature behavior can still vary with hardware and Windows version. In particular, lid controls depend on the device being a laptop or another system exposing a lid control, while Night Light and Energy Saving rely on Windows features/state that can differ between releases.
 
 ---
 
@@ -245,19 +247,19 @@ User configuration is stored at:
 Configuration includes:
 
 - Slot-to-power-plan assignments
-- Custom slot icon paths
+- Custom Light/Dark icon paths for user-created slots
+- Toggle-cycle selection
 - Icon contrast preference
 - Language preference
-- Toggle-cycle selection
 - Temporary Always On configuration
 
-Diagnostic/error logging is stored at:
+Diagnostic logging is stored at:
 
 ```text
 %TEMP%\SwitchPowerTray.log
 ```
 
-The diagnostic log is rotated when it grows beyond approximately 1 MB.
+The diagnostic log is rotated when it exceeds approximately 1 MB.
 
 ---
 
@@ -267,22 +269,22 @@ The tray menu and nested submenus use normal Windows Forms behavior.
 
 - Clicking outside an open menu closes the menu chain.
 - **Esc** closes the most recently opened submenu one level at a time.
-- Dialog-based commands close the menu before displaying the dialog.
-- Menu rebuilds do not leave the previous menu chain stuck open.
+- Dialog commands close the menu before showing the dialog.
+- Menu rebuilds do not leave a previous menu chain stuck open.
 
 ---
 
-## 🛡️ Runtime and Windows integration
+## 🔧 Runtime safeguards
 
-The application includes safeguards for normal Windows desktop operation:
+The application includes several safeguards for normal Windows desktop operation:
 
 - Single-instance protection using a global mutex
 - Automatic tray recovery after Windows Explorer/taskbar recreation
-- Effective power-mode notifications for refreshing tray state
+- Effective power-mode notifications for refreshing the active tray state
 - Session-ending cleanup
 - Native icon resource cleanup
-- Native Windows Power Profile API integration
-- Background handling for slower Energy Saver policy operations
+- Background handling for slower Energy Saver operations
+- Validation of the persistent elevated Task Scheduler registration
 
 ---
 
@@ -290,9 +292,9 @@ The application includes safeguards for normal Windows desktop operation:
 
 No Visual Studio project is required.
 
-The repository includes `Build.bat`, which locates the .NET Framework C# compiler and builds the application from the source and embedded icons.
+The repository includes `Build.bat`, which locates the .NET Framework C# compiler and builds the application from source, the Windows manifest, and embedded built-in icons.
 
-### Required files
+### Required build files
 
 Keep these files together:
 
@@ -329,7 +331,7 @@ The resulting executable is:
 SwitchPowerTray.exe
 ```
 
-The application is portable and stores user configuration separately under `%APPDATA%`.
+User configuration is stored separately under `%APPDATA%`, so the application can be used as a portable executable without a Visual Studio project or installer.
 
 ---
 
@@ -379,7 +381,11 @@ Windows_PowerPlanSwitcher_TrayApp/
 │   ├── 20-spanish-interface.png
 │   ├── 21-icon-contrast.png
 │   ├── 22-desktop-docking-station-tray.png
-│   └── 23-balanced-tray.png
+│   ├── 23-balanced-tray.png
+│   ├── 24-custom-plan-tray-icon.png
+│   ├── 25-add-custom-slot.png
+│   ├── 26-custom-icon-type.png
+│   └── 27-custom-slot-assigned-icon.png
 ├── README.md
 └── LICENSE
 ```
@@ -390,7 +396,7 @@ Windows_PowerPlanSwitcher_TrayApp/
 
 The application is designed for **Windows 10 and Windows 11** systems that provide the Windows Power Profile APIs used by the application. It is **not tied to a specific computer, manufacturer, or power-plan configuration**.
 
-Most core functionality is designed to work across compatible Windows PCs. On first use, the application can create its managed built-in power plans when they are missing instead of requiring the exact plans from the development machine to already exist.
+Most core power-plan functionality is designed to work across compatible Windows PCs. On first use, the application can create its managed built-in power plans when they are missing instead of requiring the exact plans from the development machine to already exist.
 
 ### Feature compatibility
 
@@ -398,31 +404,29 @@ Most core functionality is designed to work across compatible Windows PCs. On fi
 |---|---|---|
 | Power-plan switching | ✅ | Uses the Windows Power Profile APIs. |
 | Built-in A–F profiles | ✅ | Missing managed plans can be created automatically. |
-| Custom slots G–Z | ✅ | User assignments and icons are stored in the app configuration. |
-| Toggle cycle | ✅ | Independent of the machine's existing plan names. |
-| Temporary Always On | ✅ | Uses the application's managed Always On power configuration and Windows process/window state. |
-| Startup / elevated Task Scheduler | ✅ | Requires the normal one-time administrator approval. |
-| Light/Dark tray icons | ✅ | Uses the application's embedded icon resources. |
-| Buttons & lid settings | ✅* | Available controls depend on the device hardware; desktops do not have a lid control. |
-| Display & sleep settings | ✅ | Exact available behavior can depend on Windows and hardware. |
+| Custom slots G–Z | ✅ | Supports separate user-selected Light/Dark `.ico` or `.png` files. |
+| Toggle cycle | ✅ | Includes only the assigned slots selected by the user. |
+| Temporary Always On | ✅ | Uses the managed Always On power configuration and Windows window/process state. |
+| Startup / elevated Task Scheduler | ✅ | Uses a persistent per-user task registration with one-time administrator approval. |
+| Light/Dark tray icons | ✅ | Built-in profiles have dedicated icon resources; custom slots use explicitly configured variants. |
+| Buttons & lid settings | ✅* | Available controls depend on device hardware; desktops do not expose a lid control. |
+| Display & sleep settings | ✅ | Exact behavior can depend on Windows and hardware. |
 | Night Light integration | ⚠️ | Depends on the Night Light implementation/state available in the installed Windows version. |
-| Energy Saving integration | ⚠️ | Depends on the Windows version and the power-management features available on the device. |
+| Energy Saving integration | ⚠️ | Depends on the Windows version and power-management features available on the device. |
 
 `✅*` means the feature is generally supported, but the actual hardware determines which controls are meaningful or exposed.
 
 ### Important compatibility notes
 
-The exact power-plan settings available on a machine can depend on **hardware, firmware, Windows configuration, and the power schemes present on that system**. A desktop PC, laptop, and other device types may therefore expose different options even though the application itself is the same.
+The exact power-plan controls and hardware actions available on a machine can depend on **hardware, firmware, Windows configuration, and the power schemes exposed by that system**. A laptop and desktop may therefore expose different options even though the application is the same.
 
-The **Night** and **Energy Saving** integrations are more Windows-version dependent than the core power-plan switching functionality. These features rely on Windows system features/state that may differ between Windows releases and device configurations.
+The **Night Light** and **Energy Saving** integrations are more Windows-version dependent than the core power-plan switching features. Their underlying Windows system state can differ between Windows releases and device configurations.
 
-The application uses the standard Windows Power Profile APIs for its core power-plan functionality and does not require the user's computer to have the developer's exact existing power-plan GUIDs. Managed plans use deterministic identifiers so the application can recognize or create its own plans on another compatible installation.
+The application does not require the developer's computer or existing power-plan GUIDs. Managed plans use deterministic identifiers so the application can recognize or create its own plans on another compatible installation.
 
 ### Recommended support statement
 
-For distribution, the project can reasonably be described as:
-
-> **Designed for Windows 10 and Windows 11. Most power-plan management features work across compatible Windows systems, while certain integrations such as Night Light and Energy Saver depend on the Windows version and available system features.**
+> **Designed for Windows 10 and Windows 11. Most power-plan management features work across compatible Windows systems, while certain integrations such as Night Light and Energy Saving depend on the Windows version and available system features.**
 
 ---
 
