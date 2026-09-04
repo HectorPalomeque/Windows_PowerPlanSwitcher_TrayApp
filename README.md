@@ -2,13 +2,13 @@
 
 A lightweight Windows system-tray utility for quickly switching between Windows power plans and controlling practical power-management behavior from a compact tray interface.
 
-Version 2.0.0 turns the original switcher into a configurable power-profile tool with six built-in profiles, user-defined slots, configurable left-click cycling, Temporary Always On automation, Night Light and Energy Saver integration, per-plan power-control customization, bilingual UI support, light/dark icon handling, and persistent elevated startup through Windows Task Scheduler.
+Version 2.0.0 turns the original switcher into a configurable power-profile tool with six built-in profiles, user-defined slots, configurable left-click cycling, Temporary Always On automation, Night Light and Energy Saver integration, per-plan power-control customization, bilingual UI support, explicit Light/Dark custom icons, and persistent elevated startup through Windows Task Scheduler.
 
 ---
 
 ## 📸 Screenshots
 
-The screenshots below show the built-in profiles, tray menus, customization tools, Temporary Always On, Windows Power Options integration, multilingual support, icon contrast handling, and custom-slot icons.
+The screenshots below show the built-in profiles, tray menus, customization tools, Temporary Always On, Windows Power Options integration, multilingual support, icon contrast handling, and custom-slot icon configuration.
 
 ### Power profiles
 
@@ -76,7 +76,7 @@ The screenshots below show the built-in profiles, tray menus, customization tool
 
 ![Balanced tray](screenshots/23-balanced-tray.png)
 
-These screenshots illustrate the six built-in profiles, profile-specific tray icons, configurable slot cycling and assignment, Temporary Always On, per-plan button/lid and display/sleep customization, multilingual support, manual icon-contrast selection, custom slot icons, Windows Power Options access, and elevated startup setup.
+These screenshots illustrate the six built-in profiles, profile-specific tray icons, configurable slot cycling and assignment, Temporary Always On, per-plan button/lid and display/sleep customization, multilingual support, manual icon-contrast selection, explicit custom Light/Dark icon configuration, Windows Power Options access, and elevated startup setup.
 
 ---
 
@@ -113,19 +113,21 @@ The cycle selection is independent from slot assignment, so a slot can remain as
 
 Additional slots can be created from **Add Slot (next letter)…**, starting at G and continuing through Z.
 
-A custom slot can be configured with either an `.ico` or `.png` image and one of three explicit icon configurations:
+A custom slot can use either an `.ico` or `.png` file and can be configured in one of three explicit modes:
 
 - **Light icon only**
 - **Dark icon only**
 - **Both Light and Dark icons**
 
-The application does **not** automatically invert custom icons between Light and Dark modes.
+The application **does not automatically invert custom icons**. The user explicitly chooses which contrast variants to provide.
 
-When only one variant is configured, the other variant is intentionally left empty and the application falls back to its normal application icon in that contrast mode. When both variants are configured, each selected file is used directly for its corresponding mode.
+When only one variant is configured, the other variant remains intentionally empty. Switching to that contrast mode therefore falls back to the application's normal icon instead of generating an inverted custom image.
 
-For PNG files, transparent images are scaled proportionally and centered on the tray icon canvas rather than being stretched to fit.
+When both variants are configured, the selected Light and Dark files are used directly for their corresponding modes.
 
-For ICO files, the application requests the icon at tray size so multi-resolution ICO files can be used without relying on automatic color inversion.
+PNG files are scaled proportionally and centered on the tray-icon canvas so the source artwork is not stretched. Square transparent PNG artwork is recommended; a **32×32 px transparent square** is a good source size for tray artwork.
+
+ICO files are loaded at tray size so multi-resolution `.ico` files can be used without relying on automatic color inversion.
 
 ### 🟢 Temporary Always On
 
@@ -162,7 +164,7 @@ The Energy Saving profile combines:
 - **Best Power Efficiency** Windows power mode
 - Windows **Energy Saver** activation
 
-The application keeps these slower system-level policy operations out of the normal tray interaction path and reconciles the latest requested state independently.
+The application keeps slower system-level Energy Saver policy operations out of the normal tray interaction path and reconciles the latest requested state independently.
 
 ### 🛡️ Persistent elevated startup
 
@@ -176,7 +178,7 @@ The task launches the current executable with:
 
 The task is registered for logon with the highest available run level and is explicitly configured so that it is allowed to start on battery and does not stop merely because AC power is removed.
 
-The application also validates that the saved task points to the current executable before trusting an existing registration.
+The application validates that the saved task points to the current executable before trusting an existing registration.
 
 ### 🎛️ Power-plan customization
 
@@ -203,7 +205,7 @@ Available actions:
 - Hibernate after
 - Unattended sleep timeout
 
-Timeout presets include **Never**, minute-based values from 1 minute upward, and **Custom…** for entering a value in minutes.
+Timeout presets include **Never**, minute-based values, and **Custom…** for entering a value in minutes.
 
 ### 🌐 Language support
 
@@ -225,6 +227,8 @@ The **Icon contrast** menu supports:
 - **Use Dark icons**
 
 A theme change is detected while Auto mode is active so the tray icon can update without restarting the application.
+
+For user-created slots, Light and Dark custom icons are configured explicitly rather than being synthesized from one another.
 
 ### 🪟 Windows compatibility and DPI support
 
