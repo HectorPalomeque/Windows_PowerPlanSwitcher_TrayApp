@@ -95,9 +95,7 @@ The application provides six predefined slots:
 | **E** | Balanced | **Balanced** |
 | **F** | Energy Saving | **Energy Saving** |
 
-When a managed built-in plan is missing, the application can create its own managed plan rather than requiring the development machine's existing plan configuration.
-
-Existing power plans with the requested built-in names are not reconfigured simply because they already exist.
+When a managed built-in plan is missing, the application can create its own managed plan rather than requiring the development machine's existing plan configuration. Existing power plans with the requested built-in names are not reconfigured simply because they already exist.
 
 ### 🔄 Configurable toggle cycle
 
